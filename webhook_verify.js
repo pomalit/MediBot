@@ -7,7 +7,6 @@ const verifyWebhook = (req, res) => {
 
   if (mode && token === VERIFY_TOKEN) {
     res.status(200).send(challenge);
-    res.status(200).send('EVENT_RECEIVED');
   } else {
       res.sendStatus(403);
     }
