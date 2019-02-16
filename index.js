@@ -3,16 +3,16 @@ const PAGE_ACCESS_TOKEN = 'EAAWHyCyRPZAIBAEMQ62xftccMZBRcmJvZAaMFWZBcErFvsAvy0LS
 const START_SEARCH_NO = 'START_SEARCH_NO';
 const START_SEARCH_YES = 'START_SEARCH_YES';
 const GREETING = 'GREETING';
-const AUSTRALIA_YES = 'AUSTRALIA_YES';
-const AU_LOC_PROVIDED = 'AU_LOC_PROVIDED';
-const PREFERENCE_PROVIDED = 'PREFERENCE_PROVIDED';
+const JAPAN_YES = 'JAPAN_YES';
+const JP_LOC_PROVIDED = 'JP_LOC_PROVIDED';
+const SYMPTOMS_PROVIDED = 'SYMPTOMS_PROVIDED';
 const PREF_CLEANUP = 'PREF_CLEANUP';
 const PREF_REVEGETATION = 'PREF_REVEGETATION';
 const PREF_BIO_SURVEY = 'PREF_BIO_SURVEY';
 const PREF_CANVASSING = 'PREF_CANVASSING';
-const AUSTRALIA_NO = 'AUSTRALIA_NO';
+const JAPAN_NO = 'JAPAN_NO';
 const OTHER_HELP_YES = 'OTHER_HELP_YES';
-const FACEBOOK_GRAPH_API_BASE_URL = 'https://graph.facebook.com/v2.6/';
+const FACEBOOK_GRAPH_API_BASE_URL = 'https://graph.facebook.com/v3.2/';
 const GOOGLE_GEOCODING_API = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
 const MONGODB_URI = process.env.MONGODB_URI;
 const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY;
@@ -120,9 +120,9 @@ function handleMessage(sender_psid, message) {
 
 function handleConfirmLocation(sender_psid, geocoding_location, geocoding_formattedAddr){
   console.log('Geocoding api result: ', geocoding_location);
-  const query = {$and: [{'user_id': sender_psid}, { 'status': AUSTRALIA_YES }]};
+  const query = {$and: [{'user_id': sender_psid}, { 'status': JAPAN_YES }]};
   const update = {
-    $set: { "location.lat": geocoding_location.lat, "location.long": geocoding_location.lng, status: AU_LOC_PROVIDED }
+    $set: { "location.lat": geocoding_location.lat, "location.long": geocoding_location.lng, status: JP_LOC_PROVIDED }
   };
   const options = {upsert: false, new: true};
 
@@ -136,16 +136,16 @@ function handleConfirmLocation(sender_psid, geocoding_location, geocoding_format
           "type":"template",
           "payload":{
             "template_type":"button",
-            "text":`${geocoding_formattedAddr}. Is it your address?`,
+            "text":`${geocoding_formattedAddr}. Is this your address?`,
             "buttons":[
               {
                 "type":"postback",
-                "payload": AU_LOC_PROVIDED,
+                "payload": JP_LOC_PROVIDED,
                 "title":"Yes"
               },
               {
                 "type":"postback",
-                "payload": AUSTRALIA_YES,
+                "payload": JAPAN_YES,
                 "title":"No"
               }
             ]
@@ -160,10 +160,10 @@ function handleConfirmLocation(sender_psid, geocoding_location, geocoding_format
 function handleMessageWithLocationCoordinates(sender_psid, coordinates_lat, coordinates_long){
   const query = {$and: [
     { 'user_id': sender_psid },
-    { 'status': AUSTRALIA_YES }
+    { 'status': Japan_YES }
   ]};
   const update = {
-    $set: { "location.lat": coordinates_lat, "location.long": coordinates_long, status: AU_LOC_PROVIDED }
+    $set: { "location.lat": coordinates_lat, "location.long": coordinates_long, status: JP_LOC_PROVIDED }
   };
   const options = {upsert: false, new: true};
 
@@ -172,12 +172,13 @@ function handleMessageWithLocationCoordinates(sender_psid, coordinates_lat, coor
     if (err){
       console.log('Error in updating coordinates:', err);
     } else if (cs){
-      askForActivityPreference(sender_psid);
+      askForSymptoms(sender_psid);
     }
   });
 }
 
-function askForActivityPreference(sender_psid){
+// connect with the API here?
+function askForSymptoms(sender_psid){
   const response = {
     "attachment": {
       "type": "template",
@@ -239,17 +240,17 @@ function askForActivityPreference(sender_psid){
 
 function handleStartSearchYesPostback(sender_psid){
   const yesPayload = {
-    "text": " Ok, I have to get to know you a little bit more for this. Do you live in Australia?",
+    "text": " Alright. To get started I need some information about your situation. Do you currently live in Japan?",
     "quick_replies":[
       {
         "content_type":"text",
         "title":"Yes!",
-        "payload": AUSTRALIA_YES
+        "payload": JAPAN_YES
       },
       {
         "content_type":"text",
         "title":"Nope.",
-        "payload": AUSTRALIA_NO
+        "payload": JAPAN_NO
       }
     ]
   };
@@ -258,14 +259,14 @@ function handleStartSearchYesPostback(sender_psid){
 
 function handleStartSearchNoPostback(sender_psid){
   const noPayload = {
-    "text": "That's ok my friend, do you want to find other ways to help WWF?",
-    "quick_replies":[
+    "text": "Good to hear, let us know if we can be any help!",
+    /*"quick_replies":[
       {
         "content_type":"text",
         "title":"Yes.",
         "payload": OTHER_HELP_YES
       }
-    ]
+    ]*/
   };
   callSendAPI(sender_psid, noPayload);
 }
@@ -321,7 +322,7 @@ function handleGreetingPostback(sender_psid){
       const name = bodyObj.first_name;
       greeting = "Hi " + name + ". ";
     }
-    const message = greeting + "Would you like to join a community of like-minded pandas in your area?";
+    const message = greeting + "Would you like to get a consultation?";
     const greetingPayload = {
       "text": message,
       "quick_replies":[
@@ -341,9 +342,9 @@ function handleGreetingPostback(sender_psid){
   });
 }
 
-function handleAustraliaYesPostback(sender_psid){
+function handleJapanYesPostback(sender_psid){
   const askForLocationPayload = {
-    "text": "Where about do you live?",
+    "text": "Where exactly in Japan do you live?",
     "quick_replies":[
       {
         "content_type":"location"
@@ -353,11 +354,11 @@ function handleAustraliaYesPostback(sender_psid){
   callSendAPI(sender_psid, askForLocationPayload);
 }
 
-function handlePreferencePostback(sender_psid, chatStatus){
-  console.log('handlePreferencePostback params: ', chatStatus);
+function handleSymptomPostback(sender_psid, chatStatus){
+  console.log('handleSymptomPostback params: ', chatStatus);
   if (chatStatus && !isNaN(chatStatus.location.lat) && !isNaN(chatStatus.location.long)){
     request({
-      "url": `${FACEBOOK_GRAPH_API_BASE_URL}search?type=page&q=NonProfit+Australia&fields=name,id,category,location,picture`,
+      "url": `${FACEBOOK_GRAPH_API_BASE_URL}search?type=page&q=Hospitals+Japan&fields=name,id,category,location,picture`,
       "qs": { "access_token": PAGE_ACCESS_TOKEN },
       "method": "GET"
     }, (err, res, body) => {
@@ -419,9 +420,9 @@ function updateStatus(sender_psid, status, callback){
   });
 }
 
-function updatePreference(sender_psid, perference, callback){
+function updateSymptom(sender_psid, perference, callback){
   const query = {user_id: sender_psid};
-  const update = {status: 'PREFERENCE_PROVIDED', preference: perference};
+  const update = {status: 'SYMPTOM_PROVIDED', symptom: symptom};
   const options = {upsert: false, new: true};
 
   ChatStatus.findOneAndUpdate(query, update, options).exec((err, cs) => {
@@ -445,11 +446,11 @@ function handlePostback(sender_psid, received_postback) {
     case OTHER_HELP_YES:
       updateStatus(sender_psid, payload, handleOtherHelpPostback);
       break;
-    case AUSTRALIA_YES:
-      updateStatus(sender_psid, payload, handleAustraliaYesPostback);
+    case JAPAN_YES:
+      updateStatus(sender_psid, payload, handleJapanYesPostback);
       break;
-    case AU_LOC_PROVIDED:
-      updateStatus(sender_psid, payload, askForActivityPreference);
+    case JP_LOC_PROVIDED:
+      updateStatus(sender_psid, payload, askForSymptoms);
       break;
     case GREETING:
       updateStatus(sender_psid, payload, handleGreetingPostback);
@@ -458,7 +459,7 @@ function handlePostback(sender_psid, received_postback) {
     case PREF_REVEGETATION:
     case PREF_BIO_SURVEY:
     case PREF_CANVASSING:
-      updatePreference(sender_psid, payload, handlePreferencePostback);
+      updateSymptom(sender_psid, payload, handleSymptomPostback);
       break;
     default:
       console.log('Cannot differentiate the payload type');

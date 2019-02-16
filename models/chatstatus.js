@@ -7,7 +7,7 @@ var ChatStatusSchema = new Schema({
     lat: Number,
     long: Number
   },
-  preference: String,
+  symptom: String,
   status: String
 });
 
