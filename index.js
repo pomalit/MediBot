@@ -258,17 +258,15 @@ function handleStartSearchYesPostback(sender_psid){
 }
 
 function handleStartSearchNoPostback(sender_psid){
-  const noPayload = {
-    "text": "Good to hear, let us know if we can be any help!",
-    /*"quick_replies":[
-      {
-        "content_type":"text",
-        "title":"Yes.",
-        "payload": OTHER_HELP_YES
-      }
-    ]*/
-  };
-  callSendAPI(sender_psid, noPayload);
+  unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendTextMessage")
+.header("X-RapidAPI-Key", "88542d2bf5msh158655977701432p1933aajsnae0ab2fea047")
+.header("Content-Type", "application/x-www-form-urlencoded")
+.send(`recipientId=${sender_psid}`)
+.send(`message=${"Good to hear, let us know if we can be any help!"}`)
+.send(`pageAccessToken=${PAGE_ACCESS_TOKEN}`)
+.end(function (result) {
+  console.log(result.status, result.headers, result.body);
+});
 }
 
 function handleOtherHelpPostback(sender_psid){
