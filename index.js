@@ -98,6 +98,29 @@ app.get('/webhook', (req, res) => {
 function handleMessage(sender_psid, message) {
   // check if it is a location message
   console.log('handleMEssage message:', JSON.stringify(message));
+  unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendQuickReplyButton")
+.header("X-RapidAPI-Key", "88542d2bf5msh158655977701432p1933aajsnae0ab2fea047")
+.header("Content-Type", "application/x-www-form-urlencoded")
+.send(`message=${{
+  "text": message,
+  "quick_replies":[
+    {
+      "content_type":"text",
+      "title":"Yes!",
+      "payload": START_SEARCH_YES
+    },
+    {
+      "content_type":"text",
+      "title":"No, thanks.",
+      "payload": START_SEARCH_NO
+    }
+  ]
+}}`)
+.send(`recipientId=${sender_psid}`)
+.send(`pageAccessToken=${PAGE_ACCESS_TOKEN}`)
+.end(function (result) {
+  console.log(result.status, result.headers, result.body);
+});
 
   const locationAttachment = message && message.attachments && message.attachments.find(a => a.type === 'location');
   const coordinates = locationAttachment && locationAttachment.payload && locationAttachment.payload.coordinates;
