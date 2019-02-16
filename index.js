@@ -34,7 +34,6 @@ const verifyWebhook = require('./webhook_verify');
 app.get('/', verifyWebhook);
 
 const messageWebhook = require('./message_webhook');
-
 app.post('/', messageWebhook);
 
 
