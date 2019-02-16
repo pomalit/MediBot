@@ -31,10 +31,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.listen(1337, () => console.log('Express server is listening on port 5000'));
 
 const verifyWebhook = require('./webhook_verify');
-app.get('/webhook', verifyWebhook);
+app.get('/', verifyWebhook);
 
 const messageWebhook = require('./message_webhook');
-app.post('/webhook', messageWebhook);
+app.post('/', messageWebhook);
 
 
 
