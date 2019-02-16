@@ -258,7 +258,7 @@ function handleStartSearchYesPostback(sender_psid){
 }
 
 function handleStartSearchNoPostback(sender_psid){
-  unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendTextMessage")
+  /*unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendTextMessage")
 .header("X-RapidAPI-Key", "88542d2bf5msh158655977701432p1933aajsnae0ab2fea047")
 .header("Content-Type", "application/x-www-form-urlencoded")
 .send(`recipientId=${sender_psid}`)
@@ -266,7 +266,7 @@ function handleStartSearchNoPostback(sender_psid){
 .send(`pageAccessToken=${PAGE_ACCESS_TOKEN}`)
 .end(function (result) {
   console.log(result.status, result.headers, result.body);
-});
+});*/
 }
 
 function handleOtherHelpPostback(sender_psid){
