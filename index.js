@@ -28,13 +28,116 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.listen(1337, () => console.log('Express server is listening on port 5000'));
+app.listen(5000, () => console.log('Express server is listening on port 5000'));
 
-const verifyWebhook = require('./webhook_verify');
+const verifyWebhook = (req, res) => {
+  let VERIFY_TOKEN = 'randomstring';
+
+  let mode = req.query['hub.mode'];
+  let token = req.query['hub.verify_token'];
+  let challenge = req.query['hub.challenge'];
+
+  if (mode && token === VERIFY_TOKEN) {
+    res.status(200).send(challenge);
+  } else {
+      res.sendStatus(403);
+    }
+};
+
+module.exports = verifyWebhook;
+
 app.get('/webhook', verifyWebhook);
 
 const messageWebhook = require('./message_webhook');
+
+    module.exports = (req, res) => {
+      if (req.body.object === 'page') {
+        req.body.entry.forEach(entry => {
+          entry.messaging.forEach(event => {
+            if (event.message && event.message.text) {
+              processMessage(event);
+            }
+          });
+        });
+
+        res.status(200).end();
+    }
+};
+
+
+
+    const fetch = require('node-fetch');
+
+    // You can find your project ID in your Dialogflow agent settings
+    const projectId = 'medi-2ce3f';
+    const sessionId = '123456';
+    const languageCode = 'en-US';
+
+    const dialogflow = require('dialogflow');
+
+    const config = {
+      credentials: {
+        private_key: process.env.DIALOGFLOW_PRIVATE_KEY,
+        client_email: process.env.DIALOGFLOW_CLIENT_EMAIL
+      }
+    };
+
+    const sessionClient = new dialogflow.SessionsClient(config);
+
+    const sessionPath = sessionClient.sessionPath(projectId, sessionId);
+
+    // Remember the Page Access Token you got from Facebook earlier?
+    // Don't forget to add it to your `variables.env` file.
+    const { FACEBOOK_ACCESS_TOKEN } = process.env;
+
+    const sendTextMessage = (userId, text) => {
+      return fetch(
+        `https://graph.facebook.com/v2.6/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+          body: JSON.stringify({
+            messaging_type: 'RESPONSE',
+            recipient: {
+              id: userId,
+            },
+            message: {
+              text,
+            },
+          }),
+        }
+      );
+    }
+
+    module.exports = (event) => {
+      const userId = event.sender.id;
+      const message = event.message.text;
+
+      const request = {
+        session: sessionPath,
+        queryInput: {
+          text: {
+            text: message,
+            languageCode: languageCode,
+          },
+        },
+      };
+
+      sessionClient
+        .detectIntent(request)
+        .then(responses => {
+          const result = responses[0].queryResult;
+          return sendTextMessage(userId, result.fulfillmentText);
+        })
+        .catch(err => {
+          console.error('ERROR:', err);
+        });
+    }
+
 app.post('/webhook', messageWebhook);
+
 
 
 

@@ -15,6 +15,8 @@
     "express": "^4.16.4",
     "mongoose": "^5.0.0-rc0",
     "node-fetch": "^2.3.0",
-    "request": "^2.88.0"
+    "portscanner": "^2.2.0",
+    "request": "^2.88.0",
+    "unirest": "^0.5.1"
   }
 }
