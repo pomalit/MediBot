@@ -1,0 +1,58 @@
+[
+ {
+   "depart": "Naika",
+   "num": 1
+ },
+ {
+   "depart": "Shonika",
+   "num": 2
+ },
+ {
+   "depart": "Seishinka",
+   "num": 3
+ },
+ {
+   "depart": "Shinkeika",
+   "num": 4
+ },
+ {
+   "depart": "Geka",
+   "num": 5
+ },
+ {
+   "depart": "Seikei Geka",
+   "num": 6
+ },
+ {
+   "depart": "Keisei Geka",
+   "num": 7
+ },
+ {
+   "depart": "Noshinkei Geka",
+   "num": 8
+ },
+ {
+   "depart": "Sanfujinka",
+   "num": 9
+ },
+ {
+   "depart": "Ganka",
+   "num": 10
+ },
+ {
+   "depart": "Jibiinkoka",
+   "num": 11
+ },
+ {
+   "depart": "Hifuka",
+   "num": 12
+ },
+ {
+   "depart": "Hinyokika",
+   "num": 13
+ },
+ {
+   "depart": "Shika",
+   "num": 14
+ }
+]

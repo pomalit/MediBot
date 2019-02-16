@@ -17,7 +17,7 @@ const GOOGLE_GEOCODING_API = 'https://maps.googleapis.com/maps/api/geocode/json?
 const MONGODB_URI = process.env.MONGODB_URI;
 const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY;
 const FACEBOOK_SEND_MESSAGE_URL = 'https://graph.facebook.com/v2.6/me/messages?access_token=' + PAGE_ACCESS_TOKEN;
-
+const HOSPITAL_FINDER = require('./hospitalFinder');
 const
   request = require('request'),
   express = require('express'),
@@ -37,7 +37,7 @@ app.post('/webhook', (req, res) => {
 
   // Return a '200 OK' response to all events
   res.status(200).send('EVENT_RECEIVED');
- 
+
   const body = req.body;
 
 
@@ -181,7 +181,7 @@ function sendMessageToUser(senderId, message) {
         text: message
          }
     }
-  }, 
+  },
 
   function(error, response, body) {
         if (error) {
@@ -232,7 +232,7 @@ function sendMessageToUserPayload_Yes(senderId, message) {
       }
     ]      }
     }
-  }, 
+  },
 
   function(error, response, body) {
         if (error) {
@@ -289,10 +289,10 @@ function sendMessageToUserPayload_ss(senderId, message) {
           "payload":"START_SEARCH_YES"
 
         }
-      ]      
+      ]
       }
     }
-  }, 
+  },
   function(error, response, body) {
         if (error) {
           console.log('Error sending message to user: ' + error);
@@ -326,10 +326,10 @@ function sendMessageToUser_firstp(senderId, message) {
           "payload":"SEARCH_SYMPTOMS"
 
         }
-      ]      
+      ]
       }
     }
-  }, 
+  },
 
   function(error, response, body) {
         if (error) {
@@ -344,14 +344,15 @@ function sendMessageToUser_firstp(senderId, message) {
 function handleMessage(sender_psid, message){
 
     if ((message.text=="hello")) {
-         
+
         sendMessageToUser(sender_psid, "Hey there! Looks like you need my help. What's up?");
     } else if((message.text=="swollen")){
          sendMessageToUser_firstp(sender_psid, message);
     } else{
-        console.log(message.attachments[0].payload.coordinates.lat);
-        console.log(message.attachments[0].payload.coordinates.long);
-         sendMessageToUserPayload_address(sender_psid);
+      var lon = message.attachments[0].payload.coordinates.long;
+      var lat = message.attachments[0].payload.coordinates.lat;
+      HOSPITAL_FINDER.GetHospital(1, lon, lat);
+      sendMessageToUserPayload_address(sender_psid);
     }
 
 }
@@ -379,7 +380,7 @@ function sendMessageToUserPayload_address(senderId, message) {
           "payload":"SEARCH_SYMPTOMS"
 
         }
-      ]      
+      ]
       }
     }
   },
