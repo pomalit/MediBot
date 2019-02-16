@@ -28,7 +28,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.listen(5000, () => console.log('Express server is listening on port 5000'));
+app.listen(1337, () => console.log('Express server is listening on port 5000'));
 
 const verifyWebhook = require('./webhook_verify');
 app.get('/webhook', verifyWebhook);
