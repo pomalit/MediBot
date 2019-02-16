@@ -1,6 +1,6 @@
 'use strict';
-//const PAGE_ACCESS_TOKEN = '?';
-/*const START_SEARCH_NO = 'START_SEARCH_NO';
+const PAGE_ACCESS_TOKEN = 'EAAWHyCyRPZAIBAEMQ62xftccMZBRcmJvZAaMFWZBcErFvsAvy0LSUT2ufVWT6K73aNk4PeP5yot1pyrknJZC1ROXpyapsl4KApmabAKlhHVrpiUqKxD9yhkRXyoHW8nLkLcbvlDY5HVVXb6lugMXpGH8CJAx2rH5mTxzI5SkcewZDZD';
+const START_SEARCH_NO = 'START_SEARCH_NO';
 const START_SEARCH_YES = 'START_SEARCH_YES';
 const GREETING = 'GREETING';
 const JAPAN_YES = 'JAPAN_YES';
@@ -15,177 +15,14 @@ const OTHER_HELP_YES = 'OTHER_HELP_YES';
 const FACEBOOK_GRAPH_API_BASE_URL = 'https://graph.facebook.com/v3.2/';
 const GOOGLE_GEOCODING_API = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
 const MONGODB_URI = process.env.MONGODB_URI;
-const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY; */
+const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY;
 
-require('dotenv').config({ path: 'variables.env' });
-
-
-const express = require('express');
-const bodyParser = require('body-parser');
-
-const app = express();
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-app.listen(5000, () => console.log('Express server is listening on port 5000'));
-
-const verifyWebhook = (req, res) => {
-  let VERIFY_TOKEN = 'randomstring';
-
-  let mode = req.query['hub.mode'];
-  let token = req.query['hub.verify_token'];
-  let challenge = req.query['hub.challenge'];
-
-  if (mode && token === VERIFY_TOKEN) {
-    res.status(200).send(challenge);
-  } else {
-      res.sendStatus(403);
-    }
-};
-
-module.exports = verifyWebhook;
-
-app.get('/webhook', verifyWebhook);
-
-const messageWebhook = require('./message_webhook');
-
-    module.exports = (req, res) => {
-      if (req.body.object === 'page') {
-        req.body.entry.forEach(entry => {
-          entry.messaging.forEach(event => {
-            if (event.message && event.message.text) {
-              processMessage(event);
-            }
-          });
-        });
-
-        res.status(200).end();
-    }
-};
-
-
-
-    const fetch = require('node-fetch');
-
-    // You can find your project ID in your Dialogflow agent settings
-    const projectId = 'medi-2ce3f';
-    const sessionId = '123456';
-    const languageCode = 'en-US';
-
-    const dialogflow = require('dialogflow');
-
-    const config = {
-      credentials: {
-        private_key: process.env.DIALOGFLOW_PRIVATE_KEY,
-        client_email: process.env.DIALOGFLOW_CLIENT_EMAIL
-      }
-    };
-
-    const sessionClient = new dialogflow.SessionsClient(config);
-
-    const sessionPath = sessionClient.sessionPath(projectId, sessionId);
-
-    // Remember the Page Access Token you got from Facebook earlier?
-    // Don't forget to add it to your `variables.env` file.
-    const { FACEBOOK_ACCESS_TOKEN } = process.env;
-
-    const sendTextMessage = (userId, text) => {
-      return fetch(
-        `https://graph.facebook.com/v2.6/me/messages?access_token=${FACEBOOK_ACCESS_TOKEN}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          method: 'POST',
-          body: JSON.stringify({
-            messaging_type: 'RESPONSE',
-            recipient: {
-              id: userId,
-            },
-            message: {
-              text,
-            },
-          }),
-        }
-      );
-    }
-
-    module.exports = (event) => {
-      const userId = event.sender.id;
-      const message = event.message.text;
-
-      const request = {
-        session: sessionPath,
-        queryInput: {
-          text: {
-            text: message,
-            languageCode: languageCode,
-          },
-        },
-      };
-
-      sessionClient
-        .detectIntent(request)
-        .then(responses => {
-          const result = responses[0].queryResult;
-          return sendTextMessage(userId, result.fulfillmentText);
-        })
-        .catch(err => {
-          console.error('ERROR:', err);
-        });
-    }
-
-app.post('/webhook', messageWebhook);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*const
+const
   request = require('request'),
   express = require('express'),
   body_parser = require('body-parser'),
   mongoose = require('mongoose'),
-  app = express().use(body_parser.json()); // creates express http server */
-
-
-
-/* ---------------------------------------------------------------------------------------- */
-/**
+  app = express().use(body_parser.json()); // creates express http server
 
  //var db = mongoose.connect(MONGODB_URI);
  var ChatStatus = require("./models/chatstatus");
@@ -194,8 +31,6 @@ app.post('/webhook', messageWebhook);
 app.listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
 
 // Accepts POST requests at /webhook endpoint
-
-
 app.post('/webhook', (req, res) => {
 
   // Return a '200 OK' response to all events
@@ -232,10 +67,10 @@ app.post('/webhook', (req, res) => {
     }
 });
 
-
 // Accepts GET requests at the /webhook endpoint
 app.get('/webhook', (req, res) => {
 
+  /** UPDATE YOUR VERIFY TOKEN **/
   const VERIFY_TOKEN = 'randomstring';
 
   // Parse params from the webhook verification request
@@ -423,7 +258,7 @@ function handleStartSearchYesPostback(sender_psid){
 }
 
 function handleStartSearchNoPostback(sender_psid){
-  /*unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendTextMessage")
+  unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendTextMessage")
 .header("X-RapidAPI-Key", "88542d2bf5msh158655977701432p1933aajsnae0ab2fea047")
 .header("Content-Type", "application/x-www-form-urlencoded")
 .send(`recipientId=${sender_psid}`)
@@ -673,4 +508,4 @@ function callGeocodingApi(address, sender_psid, callback){
       }
     }
   });
-} **/
+}
