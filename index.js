@@ -17,12 +17,70 @@ const GOOGLE_GEOCODING_API = 'https://maps.googleapis.com/maps/api/geocode/json?
 const MONGODB_URI = process.env.MONGODB_URI;
 const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY;
 
-const
+
+
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.listen(5000, () => console.log('Express server is listening on port 5000'));
+
+const verifyWebhook = require('./webhook_verify');
+
+    app.get('/', verifyWebhook);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*const
   request = require('request'),
   express = require('express'),
   body_parser = require('body-parser'),
   mongoose = require('mongoose'),
-  app = express().use(body_parser.json()); // creates express http server
+  app = express().use(body_parser.json()); // creates express http server */
+
+
+
+/* ---------------------------------------------------------------------------------------- */
+/**
 
  //var db = mongoose.connect(MONGODB_URI);
  var ChatStatus = require("./models/chatstatus");
@@ -69,10 +127,10 @@ app.post('/webhook', (req, res) => {
     }
 });
 
+
 // Accepts GET requests at the /webhook endpoint
 app.get('/webhook', (req, res) => {
 
-  /** UPDATE YOUR VERIFY TOKEN **/
   const VERIFY_TOKEN = 'randomstring';
 
   // Parse params from the webhook verification request
@@ -268,7 +326,7 @@ function handleStartSearchNoPostback(sender_psid){
 .send(`pageAccessToken=${PAGE_ACCESS_TOKEN}`)
 .end(function (result) {
   console.log(result.status, result.headers, result.body);
-});*/
+});
 }
 
 function handleOtherHelpPostback(sender_psid){
@@ -510,4 +568,4 @@ function callGeocodingApi(address, sender_psid, callback){
       }
     }
   });
-}
+} **/
