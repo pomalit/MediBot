@@ -12,20 +12,21 @@ const PREF_BIO_SURVEY = 'PREF_BIO_SURVEY';
 const PREF_CANVASSING = 'PREF_CANVASSING';
 const JAPAN_NO = 'JAPAN_NO';
 const OTHER_HELP_YES = 'OTHER_HELP_YES';
-const FACEBOOK_GRAPH_API_BASE_URL = 'https://graph.facebook.com/v2.6/';
 const GOOGLE_GEOCODING_API = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
 const MONGODB_URI = process.env.MONGODB_URI;
 const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY;
+const FACEBOOK_SEND_MESSAGE_URL = 'https://graph.facebook.com/v2.6/me/messages?access_token=' + PAGE_ACCESS_TOKEN;
 
 const
   request = require('request'),
   express = require('express'),
   body_parser = require('body-parser'),
   mongoose = require('mongoose'),
-  app = express().use(body_parser.json()); // creates express http server
+  app = express().use(body_parser.json()), // creates express http server
+  unirest = require('unirest');
 
- //var db = mongoose.connect(MONGODB_URI);
- var ChatStatus = require("./models/chatstatus");
+//var db = mongoose.connect(MONGODB_URI);
+var ChatStatus = require("./models/chatstatus");
 
 // Sets server port and logs message on success
 app.listen(process.env.PORT || 5000, () => console.log('webhook is listening'));
@@ -35,8 +36,9 @@ app.post('/webhook', (req, res) => {
 
   // Return a '200 OK' response to all events
   res.status(200).send('EVENT_RECEIVED');
-
+ 
   const body = req.body;
+
 
   if (body.object === 'page') {
       // Iterate over each entry
@@ -95,440 +97,126 @@ app.get('/webhook', (req, res) => {
   }
 });
 
-function handleMessage(sender_psid, message) {
-  // check if it is a location message
-  console.log('handleMEssage message:', JSON.stringify(message));
-  unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendQuickReplyButton")
-.header("X-RapidAPI-Key", "88542d2bf5msh158655977701432p1933aajsnae0ab2fea047")
-.header("Content-Type", "application/x-www-form-urlencoded")
-.send(`message=${{
-  "text": message,
-  "quick_replies":[
-    {
-      "content_type":"text",
-      "title":"Yes!",
-      "payload": START_SEARCH_YES
-    },
-    {
-      "content_type":"text",
-      "title":"No, thanks.",
-      "payload": START_SEARCH_NO
-    }
-  ]
-}}`)
-.send(`recipientId=${sender_psid}`)
-.send(`pageAccessToken=${PAGE_ACCESS_TOKEN}`)
-.end(function (result) {
-  console.log(result.status, result.headers, result.body);
-});
-
-  const locationAttachment = message && message.attachments && message.attachments.find(a => a.type === 'location');
-  const coordinates = locationAttachment && locationAttachment.payload && locationAttachment.payload.coordinates;
-
-  if (coordinates && !isNaN(coordinates.lat) && !isNaN(coordinates.long)){
-    handleMessageWithLocationCoordinates(sender_psid, coordinates.lat, coordinates.long);
-    return;
-  } else if (message.nlp && message.nlp.entities && message.nlp.entities.location && message.nlp.entities.location.find(g => g.confidence > 0.8 && g.suggested)){
-    const locationName = message.nlp.entities.location.find(loc => loc.confidence > 0.8 && loc.suggested);
-    if (locationName.value){
-      const locationNameEncoded = encodeURIComponent(locationName.value);
-      callGeocodingApi(locationNameEncoded, sender_psid, handleConfirmLocation);
-    }
-    return;
-  } else if (message.nlp && message.nlp.entities && message.nlp.entities.greetings && message.nlp.entities.greetings.find(g => g.confidence > 0.8 && g.value === 'true')){
-    handlePostback(sender_psid, {payload: GREETING});
-    return;
-  }
-}
-
-function handleConfirmLocation(sender_psid, geocoding_location, geocoding_formattedAddr){
-  console.log('Geocoding api result: ', geocoding_location);
-  const query = {$and: [{'user_id': sender_psid}, { 'status': JAPAN_YES }]};
-  const update = {
-    $set: { "location.lat": geocoding_location.lat, "location.long": geocoding_location.lng, status: JP_LOC_PROVIDED }
-  };
-  const options = {upsert: false, new: true};
-
-  ChatStatus.findOneAndUpdate(query, update, options, (err, cs) => {
-    console.log('handleConfirmLocation update location:', cs);
-    if (err){
-      console.log('handleConfirmLocation Error in updating coordinates:', err);
-    } else if (cs){
-      const response = {
-        "attachment":{
-          "type":"template",
-          "payload":{
-            "template_type":"button",
-            "text":`${geocoding_formattedAddr}. Is this your address?`,
-            "buttons":[
-              {
-                "type":"postback",
-                "payload": JP_LOC_PROVIDED,
-                "title":"Yes"
-              },
-              {
-                "type":"postback",
-                "payload": JAPAN_YES,
-                "title":"No"
+/*app.post('/webhook/', function(req, res) {
+  console.log(JSON.stringify(req.body));
+  if (req.body.object === 'page') {
+    if (req.body.entry) {
+      req.body.entry.forEach(function(entry) {
+        if (entry.messaging) {
+          entry.messaging.forEach(function(messagingObject) {
+              var senderId = messagingObject.sender.id;
+              if (messagingObject.message) {
+                if (!messagingObject.message.is_echo) {
+                  //Assuming that everything sent to this bot is a movie name.
+                  var movieName = messagingObject.message.text;
+                  getMovieDetails(senderId, movieName);
+                }
+              } else if (messagingObject.postback) {
+                console.log('Received Postback message from ' + senderId);
               }
-            ]
-          }
+          });
+        } else {
+          console.log('Error: No messaging key found');
         }
-      };
-      callSendAPI(sender_psid, response);
-    }
-  });
-}
-
-function handleMessageWithLocationCoordinates(sender_psid, coordinates_lat, coordinates_long){
-  const query = {$and: [
-    { 'user_id': sender_psid },
-    { 'status': Japan_YES }
-  ]};
-  const update = {
-    $set: { "location.lat": coordinates_lat, "location.long": coordinates_long, status: JP_LOC_PROVIDED }
-  };
-  const options = {upsert: false, new: true};
-
-  ChatStatus.findOneAndUpdate(query, update, options, (err, cs) => {
-    console.log('handleMessage update coordinates:', cs);
-    if (err){
-      console.log('Error in updating coordinates:', err);
-    } else if (cs){
-      askForSymptoms(sender_psid);
-    }
-  });
-}
-
-// connect with the API here?
-function askForSymptoms(sender_psid){
-  const response = {
-    "attachment": {
-      "type": "template",
-      "payload": {
-        "template_type": "list",
-        "top_element_style": "compact",
-        "elements": [
-          {
-            "title": "Environmental Cleanup",
-            "subtitle": "Clean environment",
-            "image_url": "http://www.wwf.org.au/Images/UserUploadedImages/416/img-bait-reef-coral-bleaching-rubble-1000px.jpg",
-            "buttons": [
-              {
-                type: "postback",
-                title: "Go Environmental Cleanup",
-                payload: PREF_CLEANUP
-              }
-            ]
-          }, {
-            "title": "Revegetation",
-            "subtitle": "Revegetation",
-            "image_url": "http://www.wwf.org.au//Images/UserUploadedImages/416/img-planet-globe-on-moss-forest-1000px.jpg",
-            "buttons": [
-              {
-                type: "postback",
-                title: "Go Revegetation",
-                payload: PREF_REVEGETATION
-              }
-            ]
-          }, {
-            "title": "Bio Survey",
-            "subtitle": "Bio Survey",
-            "image_url": "http://www.wwf.org.au/Images/UserUploadedImages/416/img-koala-in-tree-1000px.jpg",
-            "buttons": [
-              {
-                type: "postback",
-                title: "Go Bio Survey",
-                payload: PREF_BIO_SURVEY
-              }
-            ]
-          }, {
-            "title": "Canvassing",
-            "subtitle": "Canvassing",
-            "image_url": "http://www.wwf.org.au/Images/UserUploadedImages/416/img-hackathon-winners-2017-1000px.jpg",
-            "buttons": [
-              {
-                type: "postback",
-                title: "Go Canvassing",
-                payload: PREF_CANVASSING
-              }
-            ]
-          }
-        ]
-      }
-    }
-  };
-  callSendAPI(sender_psid, response);
-}
-
-function handleStartSearchYesPostback(sender_psid){
-  const yesPayload = {
-    "text": " Alright. To get started I need some information about your situation. Do you currently live in Japan?",
-    "quick_replies":[
-      {
-        "content_type":"text",
-        "title":"Yes!",
-        "payload": JAPAN_YES
-      },
-      {
-        "content_type":"text",
-        "title":"Nope.",
-        "payload": JAPAN_NO
-      }
-    ]
-  };
-  callSendAPI(sender_psid, yesPayload);
-}
-
-function handleStartSearchNoPostback(sender_psid){
-  unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendTextMessage")
-.header("X-RapidAPI-Key", "88542d2bf5msh158655977701432p1933aajsnae0ab2fea047")
-.header("Content-Type", "application/x-www-form-urlencoded")
-.send(`recipientId=${sender_psid}`)
-.send(`message=${"Good to hear, let us know if we can be any help!"}`)
-.send(`pageAccessToken=${PAGE_ACCESS_TOKEN}`)
-.end(function (result) {
-  console.log(result.status, result.headers, result.body);
-});
-}
-
-function handleOtherHelpPostback(sender_psid){
-  const campaigns = {
-    "attachment":{
-       "type":"template",
-       "payload":{
-         "template_type":"generic",
-         "elements":[
-            {
-             "title":"We need your help",
-             "image_url":"http://awsassets.panda.org/img/original/wwf_infographic_tropical_deforestation.jpg",
-             "subtitle":"to save our natural world",
-             "buttons":[
-               {
-                 "type":"web_url",
-                 "url":"https://donate.wwf.org.au/campaigns/rhinoappeal/",
-                 "title":"Javan Rhino Appeal"
-               },{
-                 "type":"web_url",
-                 "url":"https://donate.wwf.org.au/campaigns/donate/#AD",
-                 "title":"Adopt an Animal"
-               },{
-                 "type":"web_url",
-                 "url":"https://donate.wwf.org.au/campaigns/wildcards/",
-                 "title":"Send a wildcard"
-               }
-             ]
-           }
-         ]
-       }
-     }
-  };
-  callSendAPI(sender_psid, campaigns);
-}
-
-function handleGreetingPostback(sender_psid){
-  request({
-    url: `${FACEBOOK_GRAPH_API_BASE_URL}${sender_psid}`,
-    qs: {
-      access_token: process.env.PAGE_ACCESS_TOKEN,
-      fields: "first_name"
-    },
-    method: "GET"
-  }, function(error, response, body) {
-    var greeting = "";
-    if (error) {
-      console.log("Error getting user's name: " +  error);
+      });
     } else {
-      var bodyObj = JSON.parse(body);
-      const name = bodyObj.first_name;
-      greeting = "Hi " + name + ". ";
+      console.log('Error: No entry key found');
     }
-    const message = greeting + "Would you like to get a consultation?";
-    const greetingPayload = {
-      "text": message,
-      "quick_replies":[
-        {
-          "content_type":"text",
-          "title":"Yes!",
-          "payload": START_SEARCH_YES
-        },
-        {
-          "content_type":"text",
-          "title":"No, thanks.",
-          "payload": START_SEARCH_NO
-        }
-      ]
-    };
-    callSendAPI(sender_psid, greetingPayload);
-  });
-}
+  } else {
+    console.log('Error: Not a page object');
+  }
+  res.sendStatus(200);
+})*/
 
-function handleJapanYesPostback(sender_psid){
-  const askForLocationPayload = {
-    "text": "Where exactly in Japan do you live?",
-    "quick_replies":[
+
+/* function sendUIMessageToUser(senderId, elementList) {
+  request({
+    url: FACEBOOK_SEND_MESSAGE_URL,
+    method: 'POST',
+    json: {
+      recipient: {
+        id: senderId
+      },
+      message: {
+        attachment: {
+          type: 'template',
+          payload: {
+            template_type: 'generic',
+            elements: elementList
+          }
+        }
+      }
+    }
+  }, function(error, response, body) {
+        if (error) {
+          console.log('Error sending UI message to user: ' + error.toString());
+        } else if (response.body.error){
+          console.log('Error sending UI message to user: ' + JSON.stringify(response.body.error));
+        }
+  });
+} */
+
+
+function sendMessageToUser(senderId, message) {
+
+  unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendTextMessage")
+  .header("X-RapidAPI-Key", "88542d2bf5msh158655977701432p1933aajsnae0ab2fea047")
+  .header("Content-Type", "application/x-www-form-urlencoded")
+  .send(`recipientId=${senderId}`)
+  .send(`message=message`)
+  .send(`pageAccessToken=${PAGE_ACCESS_TOKEN}`)
+  .end(function (result) {
+        //console.log(result.status, result.headers, result.body);
+    });
+
+  request({
+    url: FACEBOOK_SEND_MESSAGE_URL,
+    method: 'POST',
+    json: {
+        recipient: {
+        id: senderId
+      },
+      message: {
+        "text": "Here is a quick reply!",
+        "quick_replies":[
+      {
+        "content_type":"text",
+        "title":"Search",
+        "payload":"<POSTBACK_PAYLOAD>",
+        "image_url":"http://example.com/img/red.png"
+      },
       {
         "content_type":"location"
       }
-    ]
-  };
-  callSendAPI(sender_psid, askForLocationPayload);
-}
-
-function handleSymptomPostback(sender_psid, chatStatus){
-  console.log('handleSymptomPostback params: ', chatStatus);
-  if (chatStatus && !isNaN(chatStatus.location.lat) && !isNaN(chatStatus.location.long)){
-    request({
-      "url": `${FACEBOOK_GRAPH_API_BASE_URL}search?type=page&q=Hospitals+Japan&fields=name,id,category,location,picture`,
-      "qs": { "access_token": PAGE_ACCESS_TOKEN },
-      "method": "GET"
-    }, (err, res, body) => {
-      if (err) {
-        console.error("Unable to search Facebook API:" + err);
-      } else {
-          console.log("Facebook API result:", body);
-          let bodyJson = JSON.parse(body);
-          let elements = bodyJson.data.filter(d => {
-            if (isNaN(d.location && d.location.latitude) || isNaN(d.location && d.location.longitude)){
-              return false;
-            }
-            return d.location.latitude < chatStatus.location.lat + 0.1 && d.location.latitude > chatStatus.location.lat - 0.1
-              && d.location.longitude < chatStatus.location.long + 0.1 && d.location.longitude > chatStatus.location.long - 0.1
-          }).slice(0,3).map(org => {
-              let element = {
-                "title": org.name,
-                "buttons":[{
-                  "type": "web_url",
-                  "url": `https://www.facebook.com/${org.id}`,
-                  "title": org.name,
-                }]
-              };
-              if (org.category){
-                element["subtitle"] = org.category;
-              }
-
-              if (org.picture && org.picture.data && org.picture.data.url){
-                element["image_url"] = org.picture.data.url;
-              }
-              console.log("Facebook API element:", element);
-              return element;
-          });
-          console.log("Facebook API elements:", elements);
-          const organizationPayload = {
-            "attachment": {
-              "type": "template",
-              "payload": {
-                "template_type": "list",
-                "top_element_style": "compact",
-                "elements": elements
-              }
-            }
-          };
-          callSendAPI(sender_psid, organizationPayload);
-        }
-    });
-  }
-}
-
-function updateStatus(sender_psid, status, callback){
-  const query = {user_id: sender_psid};
-  const update = {status: status};
-  const options = {upsert: status === GREETING};
-
-  ChatStatus.findOneAndUpdate(query, update, options).exec((err, cs) => {
-    console.log('update status to db: ', cs);
-    callback(sender_psid);
-  });
-}
-
-function updateSymptom(sender_psid, perference, callback){
-  const query = {user_id: sender_psid};
-  const update = {status: 'SYMPTOM_PROVIDED', symptom: symptom};
-  const options = {upsert: false, new: true};
-
-  ChatStatus.findOneAndUpdate(query, update, options).exec((err, cs) => {
-    console.log('update perference to db: ', cs);
-    callback(sender_psid, cs);
-  });
-}
-
-function handlePostback(sender_psid, received_postback) {
-  // Get the payload for the postback
-  const payload = received_postback.payload;
-
-  // Set the response and udpate db based on the postback payload
-  switch (payload){
-    case START_SEARCH_YES:
-      updateStatus(sender_psid, payload, handleStartSearchYesPostback);
-      break;
-    case START_SEARCH_NO:
-      updateStatus(sender_psid, payload, handleStartSearchNoPostback);
-      break;
-    case OTHER_HELP_YES:
-      updateStatus(sender_psid, payload, handleOtherHelpPostback);
-      break;
-    case JAPAN_YES:
-      updateStatus(sender_psid, payload, handleJapanYesPostback);
-      break;
-    case JP_LOC_PROVIDED:
-      updateStatus(sender_psid, payload, askForSymptoms);
-      break;
-    case GREETING:
-      updateStatus(sender_psid, payload, handleGreetingPostback);
-      break;
-    case PREF_CLEANUP:
-    case PREF_REVEGETATION:
-    case PREF_BIO_SURVEY:
-    case PREF_CANVASSING:
-      updateSymptom(sender_psid, payload, handleSymptomPostback);
-      break;
-    default:
-      console.log('Cannot differentiate the payload type');
-  }
-}
-
-function callSendAPI(sender_psid, response) {
-  // Construct the message body
-  console.log('message to be sent: ', response);
-  let request_body = {
-    "recipient": {
-      "id": sender_psid
-    },
-    "message": response
-  }
-
-  // Send the HTTP request to the Messenger Platform
-  request({
-    "url": `${FACEBOOK_GRAPH_API_BASE_URL}me/messages`,
-    "qs": { "access_token": PAGE_ACCESS_TOKEN },
-    "method": "POST",
-    "json": request_body
-  }, (err, res, body) => {
-    console.log("Message Sent Response body:", body);
-    if (err) {
-      console.error("Unable to send message:", err);
+    ]      }
     }
+  }, 
+
+  function(error, response, body) {
+        if (error) {
+          console.log('Error sending message to user: ' + error);
+        } else if (response.body.error){
+          console.log('Error sending message to user: ' + response.body.error);
+        }
   });
 }
 
-function callGeocodingApi(address, sender_psid, callback){
-  console.log('before calling geocoding api with address:', address);
-  request({
-    "url": `${GOOGLE_GEOCODING_API}${address}&key=${GOOGLE_GEOCODING_API_KEY}`,
-    "method": "GET"
-  }, (err, res, body) => {
-    console.log('after calling geocoding api with result:', body);
-    if (err) {
-      console.error("Unable to retrieve location from Google API:", err);
-    } else {
-      const bodyObj = JSON.parse(body);
-      if (bodyObj.status === 'OK'){
-        if (bodyObj.results && bodyObj.results[0] && bodyObj.results[0].geometry && bodyObj.results[0].geometry.location){
-          callback(sender_psid, bodyObj.results[0].geometry.location, bodyObj.results[0].formatted_address);
-        }
-      } else{
-        console.error("Unable to retrieve location (status non-OK):", bodyObj);
-      }
-    }
-  });
+
+function handleMessage(sender_psid, message){
+
+    sendMessageToUser(sender_psid, message);
+
 }
+
+
+/*
+ request({
+    url: 'https://graph.facebook.com/v2.6/me/messages',
+    qs: { access_token: PAGE_ACCESS_TOKEN },
+    method: "POST",
+    json: {
+              recipient: { id: senderId },
+              message: { text }
+        }
+    })
+};*/
