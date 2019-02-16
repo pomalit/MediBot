@@ -17,7 +17,7 @@ const GOOGLE_GEOCODING_API = 'https://maps.googleapis.com/maps/api/geocode/json?
 const MONGODB_URI = process.env.MONGODB_URI;
 const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY; */
 
-require('dotenv').config({ path: './variables.env' });
+require('dotenv').config({ path: 'variables.env' });
 
 
 const express = require('express');
