@@ -1,7 +1,8 @@
 'use strict';
 const PAGE_ACCESS_TOKEN = 'EAAYEcHcR32MBACIlv0wweUcJHnuX3cvKsHTDgBxZApt70dtIC6nZBXzC8chvPEZC781KmgVkVBTzimsHxAlTdhv6ZAhx1L04CHIwj99yhkuBJc5kG3R4Tf301XyjYrm79kiza4kBXZBuw5TKiXUWCacvZB5GmjaZCzoEXv3e9L8QQZDZD';
-const START_SEARCH_NO = 'START_SEARCH_NO';
+const SEARCH_SYMPTOMS = 'SEARCH_SYMPTOMS';
 const START_SEARCH_YES = 'START_SEARCH_YES';
+const SEARCH_LOCATION = 'SEARCH_LOCATION';
 const GREETING = 'GREETING';
 const JAPAN_YES = 'JAPAN_YES';
 const JP_LOC_PROVIDED = 'JP_LOC_PROVIDED';
@@ -177,18 +178,156 @@ function sendMessageToUser(senderId, message) {
         id: senderId
       },
       message: {
-        "text": "Here is a quick reply!",
+        text: message
+         }
+    }
+  }, 
+
+  function(error, response, body) {
+        if (error) {
+          console.log('Error sending message to user: ' + error);
+        } else if (response.body.error){
+          console.log('Error sending message to user: ' + response.body.error);
+        }
+  });
+}
+
+
+function sendMessageToUserPayload_Yes(senderId, message) {
+
+  unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendTextMessage")
+  .header("X-RapidAPI-Key", "88542d2bf5msh158655977701432p1933aajsnae0ab2fea047")
+  .header("Content-Type", "application/x-www-form-urlencoded")
+  .send(`recipientId=${senderId}`)
+  .send(`message=message`)
+  .send(`pageAccessToken=${PAGE_ACCESS_TOKEN}`)
+  .end(function (result) {
+        //console.log(result.status, result.headers, result.body);
+    });
+
+  request({
+    url: FACEBOOK_SEND_MESSAGE_URL,
+    method: 'POST',
+    json: {
+        recipient: {
+        id: senderId
+      },
+      message: {
+        "text": "Understood. How would you prefer your treatment location? GPS, postal code, or address?",
         "quick_replies":[
       {
-        "content_type":"text",
-        "title":"Search",
-        "payload":"<POSTBACK_PAYLOAD>",
-        "image_url":"http://example.com/img/red.png"
+        "content_type":"location",
+        "title":"GPS",
+        "payload":"SEARCH_LOCATION"
       },
       {
-        "content_type":"location"
+        "content_type":"text",
+        "title":"Postal Code",
+        "payload":"SEARCH_LOCATION"
+      },
+      {
+        "content_type":"text",
+        "title":"Address",
+        "payload":"SEARCH_LOCATION"
       }
     ]      }
+    }
+  }, 
+
+  function(error, response, body) {
+        if (error) {
+          console.log('Error sending message to user: ' + error);
+        } else if (response.body.error){
+          console.log('Error sending message to user: ' + response.body.error);
+        }
+  });
+}
+
+function sendMessageToUserPayload_ss(senderId, message) {
+
+  unirest.post("https://FacebookMessengerdimashirokovV1.p.rapidapi.com/sendTextMessage")
+  .header("X-RapidAPI-Key", "88542d2bf5msh158655977701432p1933aajsnae0ab2fea047")
+  .header("Content-Type", "application/x-www-form-urlencoded")
+  .send(`recipientId=${senderId}`)
+  .send(`message=message`)
+  .send(`pageAccessToken=${PAGE_ACCESS_TOKEN}`)
+  .end(function (result) {
+        //console.log(result.status, result.headers, result.body);
+    });
+
+  request({
+    url: FACEBOOK_SEND_MESSAGE_URL,
+    method: 'POST',
+    json: {
+        recipient: {
+        id: senderId
+      },
+      //paylod goes here
+      message: {
+        "text": "Got it. Have you had any recent complications or symptoms?",
+        "quick_replies":[
+        {
+          "content_type":"text",
+          "title":"Mouth pain",
+          "payload":"START_SEARCH_YES"
+        },
+        {
+          "content_type":"text",
+          "title":"Cough",
+          "payload":"START_SEARCH_YES"
+
+        },
+        {
+          "content_type":"text",
+          "title":"Fast, deepened breathing",
+          "payload":"START_SEARCH_YES"
+
+        },
+        {
+          "content_type":"text",
+          "title":"Pain on swallowing",
+          "payload":"START_SEARCH_YES"
+
+        }
+      ]      
+      }
+    }
+  }, 
+  function(error, response, body) {
+        if (error) {
+          console.log('Error sending message to user: ' + error);
+        } else if (response.body.error){
+          console.log('Error sending message to user: ' + response.body.error);
+        }
+  });
+}
+
+function sendMessageToUser_firstp(senderId, message) {
+
+  request({
+    url: FACEBOOK_SEND_MESSAGE_URL,
+    method: 'POST',
+    json: {
+        recipient: {
+        id: senderId
+      },
+      payload: START_SEARCH_YES,
+      message: {
+        "text": "I see. Has this been happening for awhile?",
+        "quick_replies":[
+        {
+          "content_type":"text",
+          "title":"Yes",
+          "payload":"SEARCH_SYMPTOMS"
+        },
+        {
+          "content_type":"text",
+          "title":"No",
+          "payload":"SEARCH_SYMPTOMS"
+
+        }
+      ]      
+      }
     }
   }, 
 
@@ -204,8 +343,76 @@ function sendMessageToUser(senderId, message) {
 
 function handleMessage(sender_psid, message){
 
-    sendMessageToUser(sender_psid, message);
+    if ((message.text=="hello")) {
+         
+        sendMessageToUser(sender_psid, "Hey there! Looks like you need my help. What's up?");
+    } else if((message.text=="swollen")){
+         sendMessageToUser_firstp(sender_psid, message);
+    } else{
+        console.log(message.attachments[0].payload.coordinates.lat);
+        console.log(message.attachments[0].payload.coordinates.long);
+         sendMessageToUserPayload_address(sender_psid);
+    }
 
+}
+function sendMessageToUserPayload_address(senderId, message) {
+
+  /*request({
+    url: FACEBOOK_SEND_MESSAGE_URL,
+    method: 'POST',
+    json: {
+        recipient: {
+        id: senderId
+      },
+      payload: START_SEARCH_YES,
+      message: {
+        "text": "I see. Has this been happening for awhile?",
+        "quick_replies":[
+        {
+          "content_type":"text",
+          "title":"Yes",
+          "payload":"SEARCH_SYMPTOMS"
+        },
+        {
+          "content_type":"text",
+          "title":"No",
+          "payload":"SEARCH_SYMPTOMS"
+
+        }
+      ]      
+      }
+    }
+  },
+
+  function(error, response, body) {
+        if (error) {
+          console.log('Error sending message to user: ' + error);
+        } else if (response.body.error){
+          console.log('Error sending message to user: ' + response.body.error);
+        }
+  });*/
+}
+
+function handlePostback(sender_psid, received_postback) {
+  // Get the payload for the postback
+  const payload = received_postback.payload;
+
+  // Set the response and udpate db based on the postback payload
+  switch (payload){
+    case START_SEARCH_YES:
+      sendMessageToUserPayload_Yes(sender_psid);
+      break;
+    case SEARCH_SYMPTOMS:
+      sendMessageToUserPayload_ss(sender_psid);
+      break;
+    case SEARCH_LOCATION:
+      console.log(payload.coordinates.lat);
+      console.log(payload.coordinates.long);
+      sendMessageToUserPayload_address(sender_psid);
+      break;
+    default:
+      console.log('Cannot differentiate the payload type');
+  }
 }
 
 
