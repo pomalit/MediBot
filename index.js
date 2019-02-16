@@ -1,5 +1,5 @@
 'use strict';
-const PAGE_ACCESS_TOKEN = 'EAAWHyCyRPZAIBAEMQ62xftccMZBRcmJvZAaMFWZBcErFvsAvy0LSUT2ufVWT6K73aNk4PeP5yot1pyrknJZC1ROXpyapsl4KApmabAKlhHVrpiUqKxD9yhkRXyoHW8nLkLcbvlDY5HVVXb6lugMXpGH8CJAx2rH5mTxzI5SkcewZDZD';
+//const PAGE_ACCESS_TOKEN = '?';
 const START_SEARCH_NO = 'START_SEARCH_NO';
 const START_SEARCH_YES = 'START_SEARCH_YES';
 const GREETING = 'GREETING';
@@ -17,6 +17,7 @@ const GOOGLE_GEOCODING_API = 'https://maps.googleapis.com/maps/api/geocode/json?
 const MONGODB_URI = process.env.MONGODB_URI;
 const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY;
 
+require('dotenv').config({ path: 'variables.env' });
 
 
 const express = require('express');
@@ -32,7 +33,9 @@ app.listen(5000, () => console.log('Express server is listening on port 5000'));
 const verifyWebhook = require('./webhook_verify');
 app.get('/', verifyWebhook);
 
+const messageWebhook = require('./message_webhook');
 
+app.post('/', messageWebhook);
 
 
 
