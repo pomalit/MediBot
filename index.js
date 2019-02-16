@@ -351,7 +351,7 @@ function handleMessage(sender_psid, message){
     } else{
       var lon = message.attachments[0].payload.coordinates.long;
       var lat = message.attachments[0].payload.coordinates.lat;
-      HOSPITAL_FINDER.GetHospital(1, lon, lat);
+      var jsonlist = HOSPITAL_FINDER.GetHospital(1, lon, lat);
       sendMessageToUserPayload_address(sender_psid);
     }
 

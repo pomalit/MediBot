@@ -51,12 +51,15 @@ function GetHospital(spec_No,lat,logi){
 
   }, function(err, response) {
   if (!err) {
-    //console.log(response.json.results);
-    console.log((response.json.results[0].geometry.location));
-    //console.log(object.get("geometry"));
 
+    //console.log((response.json.results[0].geometry.location));
+
+    console.log((response.json.results[0].name));
+    //console.log(object.get("geometry"));
+    return response.json.results;
   }
   });
+
 }
 
 GetHospital(1,35.652596, 139.778982);
