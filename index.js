@@ -1,5 +1,5 @@
 'use strict';
-const PAGE_ACCESS_TOKEN = 'EAAWHyCyRPZAIBAEMQ62xftccMZBRcmJvZAaMFWZBcErFvsAvy0LSUT2ufVWT6K73aNk4PeP5yot1pyrknJZC1ROXpyapsl4KApmabAKlhHVrpiUqKxD9yhkRXyoHW8nLkLcbvlDY5HVVXb6lugMXpGH8CJAx2rH5mTxzI5SkcewZDZD';
+const PAGE_ACCESS_TOKEN = 'EAAYEcHcR32MBACIlv0wweUcJHnuX3cvKsHTDgBxZApt70dtIC6nZBXzC8chvPEZC781KmgVkVBTzimsHxAlTdhv6ZAhx1L04CHIwj99yhkuBJc5kG3R4Tf301XyjYrm79kiza4kBXZBuw5TKiXUWCacvZB5GmjaZCzoEXv3e9L8QQZDZD';
 const START_SEARCH_NO = 'START_SEARCH_NO';
 const START_SEARCH_YES = 'START_SEARCH_YES';
 const GREETING = 'GREETING';
@@ -12,7 +12,7 @@ const PREF_BIO_SURVEY = 'PREF_BIO_SURVEY';
 const PREF_CANVASSING = 'PREF_CANVASSING';
 const JAPAN_NO = 'JAPAN_NO';
 const OTHER_HELP_YES = 'OTHER_HELP_YES';
-const FACEBOOK_GRAPH_API_BASE_URL = 'https://graph.facebook.com/v3.2/';
+const FACEBOOK_GRAPH_API_BASE_URL = 'https://graph.facebook.com/v2.6/';
 const GOOGLE_GEOCODING_API = 'https://maps.googleapis.com/maps/api/geocode/json?address=';
 const MONGODB_URI = process.env.MONGODB_URI;
 const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY;
@@ -28,7 +28,7 @@ const
  var ChatStatus = require("./models/chatstatus");
 
 // Sets server port and logs message on success
-app.listen(process.env.PORT || 1337, () => console.log('webhook is listening'));
+app.listen(process.env.PORT || 5000, () => console.log('webhook is listening'));
 
 // Accepts POST requests at /webhook endpoint
 app.post('/webhook', (req, res) => {
