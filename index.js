@@ -1,5 +1,5 @@
 'use strict';
-const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+const PAGE_ACCESS_TOKEN = EAAWHyCyRPZAIBAEMQ62xftccMZBRcmJvZAaMFWZBcErFvsAvy0LSUT2ufVWT6K73aNk4PeP5yot1pyrknJZC1ROXpyapsl4KApmabAKlhHVrpiUqKxD9yhkRXyoHW8nLkLcbvlDY5HVVXb6lugMXpGH8CJAx2rH5mTxzI5SkcewZDZD;
 const START_SEARCH_NO = 'START_SEARCH_NO';
 const START_SEARCH_YES = 'START_SEARCH_YES';
 const GREETING = 'GREETING';
@@ -71,7 +71,7 @@ app.post('/webhook', (req, res) => {
 app.get('/webhook', (req, res) => {
 
   /** UPDATE YOUR VERIFY TOKEN **/
-  const VERIFY_TOKEN = process.env.VERIFICATION_TOKEN;
+  const VERIFY_TOKEN = randomstring;
 
   // Parse params from the webhook verification request
   let mode = req.query['hub.mode'];
