@@ -474,39 +474,39 @@ function sendMessageToUserPayload_FinalAddress(sender_psid, message) {
               }]
             },
             {
-            "title": local,
+            "title": local2,
             //"image_url":"https://petersfancybrownhats.com/company_image.png",
             //"subtitle":"We have the right hat for everyone.",
             "default_action": {
               "type": "web_url",
-              "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
+              "url": "http://www.google.com/maps/place/" + latitude2 + "," + longitude2,
               "webview_height_ratio": "tall"
             },
             "buttons":[
               {
                 "type":"web_url",
-                "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
+                "url": "http://www.google.com/maps/place/" + latitude2 + "," + longitude2,
                 "title":"Open in Maps"
               }]
             },
-            {"title": local,
+            {"title": local3,
             //"image_url":"https://petersfancybrownhats.com/company_image.png",
             //"subtitle":"We have the right hat for everyone.",
             "default_action": {
               "type": "web_url",
-              "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
+              "url": "http://www.google.com/maps/place/" + latitude3 + "," + longitude3,
               "webview_height_ratio": "tall"
             },
             "buttons":[
               {
                 "type":"web_url",
-                "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
+                "url": "http://www.google.com/maps/place/" + latitude3 + "," + longitude3,
                 "title":"Open in Maps"
               }]
             }]
       }
     }
-  }}),
+  }},
 
   function(error, response, body) {
         if (error) {
@@ -514,10 +514,11 @@ function sendMessageToUserPayload_FinalAddress(sender_psid, message) {
         } else if (response.body.error){
           console.log('Error sending message to user: ' + response.body.error);
         }
-  };
+  }
 }, 100
   );
-}
+
+})}
 
 function handlePostback(sender_psid, received_postback) {
   // Get the payload for the postback
