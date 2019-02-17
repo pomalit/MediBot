@@ -43,7 +43,7 @@ return departJp[0].depart;//obj;
 function GetHospital(spec_No,lat,logi){
   googleMapsClient.placesNearby({
   language: 'en',
-  location: [lat, logi],
+  location: [logi, lat],
   radius: 10000,
   //opennow: true,
   type: 'hospital',
@@ -62,4 +62,6 @@ function GetHospital(spec_No,lat,logi){
 
 }
 
-GetHospital(1,35.652596, 139.778982);
+module.exports = hospital
+
+//GetHospital(1,35.652596, 139.778982);

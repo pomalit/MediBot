@@ -17,7 +17,6 @@ const GOOGLE_GEOCODING_API = 'https://maps.googleapis.com/maps/api/geocode/json?
 const MONGODB_URI = process.env.MONGODB_URI;
 const GOOGLE_GEOCODING_API_KEY = process.env.GOOGLE_GEOCODING_API_KEY;
 const FACEBOOK_SEND_MESSAGE_URL = 'https://graph.facebook.com/v2.6/me/messages?access_token=' + PAGE_ACCESS_TOKEN;
-const HOSPITAL_FINDER = require('./hospitalFinder');
 const
   request = require('request'),
   express = require('express'),
@@ -351,7 +350,11 @@ function handleMessage(sender_psid, message){
     } else{
       var lon = message.attachments[0].payload.coordinates.long;
       var lat = message.attachments[0].payload.coordinates.lat;
-      var jsonlist = HOSPITAL_FINDER.GetHospital(1, lon, lat);
+      console.log(lon);
+      console.log(lat);
+      var jsonlist = getHospital(1, lon, lat);
+      console.log(jsonlist);
+      console.log("Fin")
       sendMessageToUserPayload_address(sender_psid);
     }
 
@@ -407,13 +410,80 @@ function handlePostback(sender_psid, received_postback) {
       sendMessageToUserPayload_ss(sender_psid);
       break;
     case SEARCH_LOCATION:
-      console.log(payload.coordinates.lat);
-      console.log(payload.coordinates.long);
       sendMessageToUserPayload_address(sender_psid);
       break;
     default:
       console.log('Cannot differentiate the payload type');
   }
+}
+
+
+var Promise = require('q').Promise;
+var departs = require('./department.json');
+var specialist = require('./specialist.json');
+
+unirest.post("https://FacebookGraphAPIserg.osipchukV1.p.rapidapi.com/extendUserToken")
+.header("X-RapidAPI-Key", "540ca8ff29msh48052af738b5fd5p1c2b20jsnc1989860a1d3")
+.header("Content-Type", "application/x-www-form-urlencoded")
+.end(function (result) {
+  //console.log(result.status, result.headers, result.body);
+});
+
+const googleMapsClient = require('@google/maps').createClient({
+    key: 'AIzaSyDl0Kp8DQszGIa-rpok_fT24B5UxRNmo6c'
+});
+
+function GetDepart(num)
+{
+  var departNo = specialist.filter(function (special) {return special.id==num});
+  var departJp = departs.filter(function (depa) {return depa.num==departNo[0].depart});
+
+//console.log(departJp[0].depart);
+return departJp[0].depart;//obj;
+}
+/*
+  googleMapsClient.placesNearby({
+  language: 'en',
+  location: [35.652596, 139.778982],
+  radius: 10000,
+  //opennow: true,
+  type: 'hospital',
+  keyword: GetDepart(1)
+
+  }, function(err, response) {
+  if (!err) {
+    //console.log(response.json.results);
+    console.log((response.json.results[0].geometry.location));
+    //console.log(object.get("geometry"));
+
+  }
+  });
+*/
+function getHospital(spec_No,lat,logi){
+  googleMapsClient.placesNearby({
+  language: 'en',
+  location: [logi, lat],
+  radius: 10000,
+  //opennow: true,
+  type: 'hospital',
+  keyword: GetDepart(spec_No)
+
+  }, function(err, response) {
+  if (!err) {
+
+    console.log("maps sucess");
+    //console.log((response.json.results[0].geometry.location));
+
+    console.log((response.json.results[0].name));
+    console.log((response.json.results[1].name));
+    
+    console.log((response.json.results[2].name));
+
+    //console.log(object.get("geometry"));
+    return response.json.results;
+  }
+  });
+
 }
 
 
