@@ -28,6 +28,17 @@ const
 
 //var db = mongoose.connect(MONGODB_URI);
 var ChatStatus = require("./models/chatstatus");
+var local = "";
+var local2 = "";
+var local3 = "";
+var latitude = "";
+var latitude2 = "";
+var latitude3 = "";
+var longitude = "";
+var longitude2 = "";
+var longitude3 = "";
+var badbadbad;
+
 
 // Sets server port and logs message on success
 app.listen(process.env.PORT || 5000, () => console.log('webhook is listening'));
@@ -343,32 +354,56 @@ function sendMessageToUser_firstp(senderId, message) {
 
 function handleMessage(sender_psid, message){
 
-    if ((message.text=="hello")) {
+    if ((message.text=="Hello")) {
 
         sendMessageToUser(sender_psid, "Hey there! Looks like you need my help. What's up?");
-    } else if((message.text=="swollen")){
+    } else if((message.text=="My throat is swollen")){
          sendMessageToUser_firstp(sender_psid, message);
     } else{
       var lon = message.attachments[0].payload.coordinates.long;
       var lat = message.attachments[0].payload.coordinates.lat;
-      console.log(lon);
-      console.log(lat);
-      var jsonlist = getHospital(1, lon, lat);
-      console.log(jsonlist);
-      console.log("Fin")
-      sendMessageToUserPayload_address(sender_psid);
+      //console.log(lon);
+      //console.log(lat);
+      console.log("LOOOK GHERE");
+      getHospital(1, lon, lat)
+     
+     badbadbad = sender_psid;
+      
     }
 
 }
-function sendMessageToUserPayload_address(senderId, message) {
+
+function mapDataReady(results) {
+
+      console.log(results);
+      local = results[0].name;
+      local2 = results[1].name;
+      local3 = results[2].name;
+      latitude = results[0].geometry.location.lat;
+      longitude = results[0].geometry.location.lng;
+
+      console.log("JSON STUFF");
+      console.log(local, latitude, longitude);
+
+      sendMessageToUserPayload_address(badbadbad);
+      
+      console.log(longitude);
+      //console.log(result);
+
+}
+
+
+function sendMessageToUserPayload_address(sender_psid, message) {
   sendMessageToUser(sender_psid, "Alright. Gimme one sec.");
 
-  request({
+setTimeout(function(){
+
+request({
     url: FACEBOOK_SEND_MESSAGE_URL,
     method: 'POST',
     json: {
         recipient: {
-        id: senderId
+        id: sender_psid
       },
       payload: START_SEARCH_YES,
       message: {
@@ -397,34 +432,82 @@ function sendMessageToUserPayload_address(senderId, message) {
           console.log('Error sending message to user: ' + response.body.error);
         }
   });
-}
+},3000
+  );
+  }
 
-function sendMessageToUserPayload_FinalAddress(senderId, message) {
+function sendMessageToUserPayload_FinalAddress(sender_psid, message) {
   sendMessageToUser(sender_psid, "Alright. Let's see what I've got...");
   sendMessageToUser(sender_psid, "Great. Here is the list of facilities that can address your problem.");
+
+  setTimeout(function(){
+
   request({
     url: FACEBOOK_SEND_MESSAGE_URL,
     method: 'POST',
     json: {
         recipient: {
-        id: senderId
+        id: sender_psid
       },
       payload: START_SEARCH_YES,
       message: {
-        "text": "We almost done. One last question, would you prefer easy access or cheaper transportation costs?",
-        "quick_replies":[
-        {
-          "content_type":"text",
-          "title":"Easy Access",
-          "payload":"SEARCH_SYMPTOMS"
-        },
-        {
-          "content_type":"text",
-          "title":"Cheaper Costs",
-          "payload":"SEARCH_SYMPTOMS"
 
-        }
-      ]
+          "attachment":{
+      "type":"template",
+      "payload":{
+        "template_type":"generic",
+        "elements":[
+           {
+            "title": local,
+            //"image_url":"https://petersfancybrownhats.com/company_image.png",
+            //"subtitle":"We have the right hat for everyone.",
+            "default_action": {
+              "type": "web_url",
+              "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
+              "webview_height_ratio": "tall"
+            },
+            
+            "title": local2,
+            //"image_url":"https://petersfancybrownhats.com/company_image.png",
+            //"subtitle":"We have the right hat for everyone.",
+              "default_action":  {
+              "type": "web_url",
+              "url": "http://www.google.com/maps/place/" + latitude2 + "," + longitude2,
+              "webview_height_ratio": "tall"
+            },
+            
+            "title": local3,
+            //"image_url":"https://petersfancybrownhats.com/company_image.png",
+            //"subtitle":"We have the right hat for everyone.",
+            "default_action": {
+              "type": "web_url",
+              "url": "http://www.google.com/maps/place/" + latitude3 + "," + longitude3,
+              "webview_height_ratio": "tall"
+            },
+
+            "buttons":[
+              {
+                "type":"web_url",
+                "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
+                "title":"Open in Maps"
+              },
+              {
+              
+                "type":"web_url",
+                "url": "http://www.google.com/maps/place/" + latitude2 + "," + longitude2,
+                "title":"Open in Maps"
+              },
+              {
+                "type":"web_url",
+                "url": "http://www.google.com/maps/place/" + latitude3 + "," + longitude3,
+                "title":"Open in Maps"
+              }           
+            ]      
+          }
+        ]
+      }
+    }
+       
       }
     }
   },
@@ -436,6 +519,8 @@ function sendMessageToUserPayload_FinalAddress(senderId, message) {
           console.log('Error sending message to user: ' + response.body.error);
         }
   });
+}, 100
+  );
 }
 
 function handlePostback(sender_psid, received_postback) {
@@ -453,8 +538,8 @@ function handlePostback(sender_psid, received_postback) {
     case SEARCH_LOCATION:
       sendMessageToUserPayload_address(sender_psid);
       break;
-      case FINAL_LOCATION:
-        sendMessageToUserPayload_FinalAddress(sender_psid);
+    case FINAL_LOCATION:
+      sendMessageToUserPayload_FinalAddress(sender_psid);
         break;
     default:
       console.log('Cannot differentiate the payload type');
@@ -504,6 +589,7 @@ return departJp[0].depart;//obj;
   });
 */
 function getHospital(spec_No,lat,logi){
+  console.log("Getting hospital");
   googleMapsClient.placesNearby({
   language: 'en',
   location: [logi, lat],
@@ -515,16 +601,12 @@ function getHospital(spec_No,lat,logi){
   }, function(err, response) {
   if (!err) {
 
-    console.log("maps sucess");
+    console.log("MAP sucess")
     //console.log((response.json.results[0].geometry.location));
 
-    console.log((response.json.results[0].name));
-    console.log((response.json.results[1].name));
-
-    console.log((response.json.results[2].name));
-
     //console.log(object.get("geometry"));
-    return response.json.results;
+    mapDataReady(response.json.results);
+
   }
   });
 
