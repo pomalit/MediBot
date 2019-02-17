@@ -3,6 +3,7 @@ const PAGE_ACCESS_TOKEN = 'EAAYEcHcR32MBACIlv0wweUcJHnuX3cvKsHTDgBxZApt70dtIC6nZ
 const SEARCH_SYMPTOMS = 'SEARCH_SYMPTOMS';
 const START_SEARCH_YES = 'START_SEARCH_YES';
 const SEARCH_LOCATION = 'SEARCH_LOCATION';
+const FINAL_LOCATION = 'FINAL_LOCATION';
 const GREETING = 'GREETING';
 const JAPAN_YES = 'JAPAN_YES';
 const JP_LOC_PROVIDED = 'JP_LOC_PROVIDED';
@@ -360,8 +361,9 @@ function handleMessage(sender_psid, message){
 
 }
 function sendMessageToUserPayload_address(senderId, message) {
+  sendMessageToUser(sender_psid, "Alright. Gimme one sec.");
 
-  /*request({
+  request({
     url: FACEBOOK_SEND_MESSAGE_URL,
     method: 'POST',
     json: {
@@ -370,16 +372,55 @@ function sendMessageToUserPayload_address(senderId, message) {
       },
       payload: START_SEARCH_YES,
       message: {
-        "text": "I see. Has this been happening for awhile?",
+        "text": "We almost done. One last question, would you prefer easy access or cheaper transportation costs?",
         "quick_replies":[
         {
           "content_type":"text",
-          "title":"Yes",
+          "title":"Easy Access",
+          "payload":"FINAL_LOCATION"
+        },
+        {
+          "content_type":"text",
+          "title":"Cheaper Costs",
+          "payload":"FINAL_LOCATION"
+
+        }
+      ]
+      }
+    }
+  },
+
+  function(error, response, body) {
+        if (error) {
+          console.log('Error sending message to user: ' + error);
+        } else if (response.body.error){
+          console.log('Error sending message to user: ' + response.body.error);
+        }
+  });
+}
+
+function sendMessageToUserPayload_FinalAddress(senderId, message) {
+  sendMessageToUser(sender_psid, "Alright. Let's see what I've got...");
+  sendMessageToUser(sender_psid, "Great. Here is the list of facilities that can address your problem.");
+  request({
+    url: FACEBOOK_SEND_MESSAGE_URL,
+    method: 'POST',
+    json: {
+        recipient: {
+        id: senderId
+      },
+      payload: START_SEARCH_YES,
+      message: {
+        "text": "We almost done. One last question, would you prefer easy access or cheaper transportation costs?",
+        "quick_replies":[
+        {
+          "content_type":"text",
+          "title":"Easy Access",
           "payload":"SEARCH_SYMPTOMS"
         },
         {
           "content_type":"text",
-          "title":"No",
+          "title":"Cheaper Costs",
           "payload":"SEARCH_SYMPTOMS"
 
         }
@@ -394,7 +435,7 @@ function sendMessageToUserPayload_address(senderId, message) {
         } else if (response.body.error){
           console.log('Error sending message to user: ' + response.body.error);
         }
-  });*/
+  });
 }
 
 function handlePostback(sender_psid, received_postback) {
@@ -412,6 +453,9 @@ function handlePostback(sender_psid, received_postback) {
     case SEARCH_LOCATION:
       sendMessageToUserPayload_address(sender_psid);
       break;
+      case FINAL_LOCATION:
+        sendMessageToUserPayload_FinalAddress(sender_psid);
+        break;
     default:
       console.log('Cannot differentiate the payload type');
   }
@@ -476,7 +520,7 @@ function getHospital(spec_No,lat,logi){
 
     console.log((response.json.results[0].name));
     console.log((response.json.results[1].name));
-    
+
     console.log((response.json.results[2].name));
 
     //console.log(object.get("geometry"));
