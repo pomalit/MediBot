@@ -366,9 +366,9 @@ function handleMessage(sender_psid, message){
       //console.log(lat);
       console.log("LOOOK GHERE");
       getHospital(1, lon, lat)
-     
+
      badbadbad = sender_psid;
-      
+
     }
 
 }
@@ -386,7 +386,7 @@ function mapDataReady(results) {
       console.log(local, latitude, longitude);
 
       sendMessageToUserPayload_address(badbadbad);
-      
+
       console.log(longitude);
       //console.log(result);
 
@@ -466,51 +466,47 @@ function sendMessageToUserPayload_FinalAddress(sender_psid, message) {
               "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
               "webview_height_ratio": "tall"
             },
-            
-            "title": local2,
-            //"image_url":"https://petersfancybrownhats.com/company_image.png",
-            //"subtitle":"We have the right hat for everyone.",
-              "default_action":  {
-              "type": "web_url",
-              "url": "http://www.google.com/maps/place/" + latitude2 + "," + longitude2,
-              "webview_height_ratio": "tall"
-            },
-            
-            "title": local3,
-            //"image_url":"https://petersfancybrownhats.com/company_image.png",
-            //"subtitle":"We have the right hat for everyone.",
-            "default_action": {
-              "type": "web_url",
-              "url": "http://www.google.com/maps/place/" + latitude3 + "," + longitude3,
-              "webview_height_ratio": "tall"
-            },
-
             "buttons":[
               {
                 "type":"web_url",
                 "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
                 "title":"Open in Maps"
-              },
+              }]
+            },
+            {
+            "title": local,
+            //"image_url":"https://petersfancybrownhats.com/company_image.png",
+            //"subtitle":"We have the right hat for everyone.",
+            "default_action": {
+              "type": "web_url",
+              "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
+              "webview_height_ratio": "tall"
+            },
+            "buttons":[
               {
-              
                 "type":"web_url",
-                "url": "http://www.google.com/maps/place/" + latitude2 + "," + longitude2,
+                "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
                 "title":"Open in Maps"
-              },
+              }]
+            },
+            {"title": local,
+            //"image_url":"https://petersfancybrownhats.com/company_image.png",
+            //"subtitle":"We have the right hat for everyone.",
+            "default_action": {
+              "type": "web_url",
+              "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
+              "webview_height_ratio": "tall"
+            },
+            "buttons":[
               {
                 "type":"web_url",
-                "url": "http://www.google.com/maps/place/" + latitude3 + "," + longitude3,
+                "url": "http://www.google.com/maps/place/" + latitude + "," + longitude,
                 "title":"Open in Maps"
-              }           
-            ]      
-          }
-        ]
+              }]
+            }]
       }
     }
-       
-      }
-    }
-  },
+  }}),
 
   function(error, response, body) {
         if (error) {
@@ -518,7 +514,7 @@ function sendMessageToUserPayload_FinalAddress(sender_psid, message) {
         } else if (response.body.error){
           console.log('Error sending message to user: ' + response.body.error);
         }
-  });
+  };
 }, 100
   );
 }
